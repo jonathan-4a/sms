@@ -63,6 +63,8 @@ class Main {
 
         System.out.print("Enter your password: ");
         String password = scanner.nextLine();
+        
+        boolean loggedIn = false;
 
         for (Staff staff : staffs) {
             if (staff.getEmail().equals(email) && staff.getPassword().equals(password)) {
@@ -72,13 +74,18 @@ class Main {
                 }
 
                 System.out.println("Login successful. Welcome, " + staff.getFirstName() + "!");
+                loggedIn = true;
                 staff.actionMenu(scanner);
             }
         }
-
-        System.out.println("\nInvalid credentials. Please try again.");
+        if (email == null || password == null){
+            return;
+        } 
+        
+        if (!loggedIn) {
+            System.out.println("\nInvalid credentials. Please try again.");
+        }
     }
-
 
 
 
