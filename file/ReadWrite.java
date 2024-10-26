@@ -12,7 +12,7 @@ import java.util.List;
 
 public class ReadWrite {
 
-
+    // staffs = [["james", "mark", "supervisor"], ["jessica", "smith", "casework"]]
     public List<List<String>> readCSV(String fileName) throws IOException {
         List<List<String>> rows = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {

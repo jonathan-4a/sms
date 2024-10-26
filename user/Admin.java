@@ -9,7 +9,6 @@ public class Admin extends Personnel {
 
     public Admin(String firstName, String lastName, String email, String password) {
         super(firstName, lastName, email, password);
-
     }
 
     public void loginAdmin(Scanner scanner, List < Staff > staffs) {

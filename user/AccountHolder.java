@@ -5,9 +5,15 @@ import java.util.regex.Pattern;
 
 import file.ReadWrite;
 
-public abstract class AccountHolder {
+public class AccountHolder {
 
     // Fields
+    //In Java, a protected instance variable is a member variable that can be 
+    // accessed within its own package and by subclasses (even if they are in different packages).
+    // This means that the variable is more accessible than private variables, 
+    //which can only be accessed within the same class, but less accessible than public variables, 
+    //which can be accessed from anywhere. The protected keyword is often used to allow controlled 
+    //access to variables while still maintaining some encapsulation.
     protected static ReadWrite rw = new ReadWrite();
 
     protected String firstName;

@@ -7,23 +7,24 @@ import java.util.Scanner;
 
 public class Supervisor extends Staff {
 
-
     public Supervisor(String firstName, String lastName, String email, boolean isVerified, String password) {
         super(firstName, lastName, email, isVerified, password);
     }
 
-    public static List < Staff > getAllMembers() {
+    public static List<Staff> getAllMembers() {
         try {
-            List < List < String >> membersList = rw.readCSV(Staff.filePath);
-            List < Staff > members = new ArrayList < > ();
+            List<List<String>> membersList = rw.readCSV(Staff.filePath);
+            List<Staff> members = new ArrayList<>();
 
-            for (List < String > member: membersList) {
+            for (List<String> member : membersList) {
                 members.add(
-                    new Supervisor(member.get(1),
+                    new Supervisor(
+                        member.get(1),
                         member.get(2),
                         member.get(3),
                         Boolean.parseBoolean(member.get(4)),
-                        member.get(5))
+                        member.get(5)
+                    )
                 );
             }
 
@@ -33,7 +34,6 @@ public class Supervisor extends Staff {
             e.printStackTrace();
             return null;
         }
-
     }
 
     @Override
@@ -43,27 +43,27 @@ public class Supervisor extends Staff {
             switch (choice) {
                 case VIEW_ASSIGNED_RESIDENTS:
                     viewAssignedResidents();
-                break;
+                    break;
                 case ASSIGN_RESIDENT_TO_CASEWORKER:
-                    assignResidentToCaseWorker();
-                break;
+                    assignResidentToCaseWorker(scanner);
+                    break;
                 case ADD_NEW_RESIDENT:
-                    addNewResident();
-                break;
+                    addNewResident(scanner);
+                    break;
                 case ASSIGN_UNIT_TO_RESIDENT:
                     assignUnitToResident();
                     break;
                 case BACK:
-                return;
+                    return;
                 case EXIT:
-                System.exit(0);
+                    System.exit(0);
                 default:
-                System.out.println("Invalid choice, please try again.");
-                break;
+                    System.out.println("Invalid choice, please try again.");
+                    break;
             }
         }
     }
-    
+
     private StaffMenu printActionMenu(Scanner scanner) {
         System.out.println("\n==========================");
         System.out.println("     Supervisor Actions      ");
@@ -76,10 +76,10 @@ public class Supervisor extends Staff {
         System.out.println("6. Exit");
         System.out.println("==========================");
         System.out.print("Please choose an option: ");
-        
+
         int input = scanner.nextInt();
         scanner.nextLine();
-        
+
         if (input == 1) {
             return StaffMenu.ASSIGN_RESIDENT_TO_CASEWORKER;
         } else if (input == 2) {
@@ -96,20 +96,129 @@ public class Supervisor extends Staff {
             return StaffMenu.NONE;
         }
     }
-    
-    public void addNewResident() {
-    
+
+    public void addNewResident(Scanner scanner) {
+        System.out.print("Enter Resident's First Name: ");
+        String firstName = scanner.nextLine();
+
+        System.out.print("Enter Resident's Last Name: ");
+        String lastName = scanner.nextLine();
+
+        System.out.print("Enter Resident's Email: ");
+        String email = scanner.nextLine();
+
+        System.out.print("Enter Resident's Phone Number: ");
+        String phoneNumber = scanner.nextLine();
+
+        System.out.print("Enter Resident's Health Status: ");
+        String healthStatus = scanner.nextLine();
+
+        String assignedTo = "none";
+
+        Resident newResident = new Resident(firstName, lastName, email, phoneNumber, healthStatus, assignedTo);
+
+        List<String> residentData = newResident.toList();
+
+        try {
+            Resident.rw.appendToCSV("./file/residents.csv", residentData);
+            System.out.println("New resident added successfully.");
+        } catch (IOException e) {
+            System.out.println("Error adding new resident to file.");
+            e.printStackTrace();
+        }
     }
-    public void assignUnitToResident() {
-    
+
+    public void assignResidentToCaseWorker(Scanner scanner) {
+        // Step 1: List and Select Resident
+        Resident selectedResident = selectResident(scanner);
+
+        if (selectedResident == null) {
+            System.out.println("Invalid resident selection.");
+            return;
+        }
+
+        // Step 2: List and Select Caseworker
+        CaseWorker selectedCaseworker = selectCaseWorker(scanner);
+
+        if (selectedCaseworker == null) {
+            System.out.println("Invalid caseworker selection.");
+            return;
+        }
+
+        // Step 3: Update the resident's assigned caseworker and save to CSV
+        Resident.updateAssignedCaseworker(selectedResident.getEmail(), selectedCaseworker.getEmail());
+        System.out.println("Resident " + selectedResident.getFirstName() + " assigned to Case Worker " + selectedCaseworker.getFirstName());
     }
-    
-    public void assignResidentToCaseWorker() {
-    
+
+    // Helper method to list residents and prompt user for selection
+    private Resident selectResident(Scanner scanner) {
+        List<Resident> residents = Resident.loadResidents();
+        System.out.println("\nAvailable Residents:");
+        System.out.println(Resident.getHeader());  // Print resident header
+
+        for (int i = 0; i < residents.size(); i++) {
+            System.out.printf("%d. %s", (i + 1), residents.get(i).toString());
+        }
+
+        System.out.print("Select a resident by number: ");
+        int residentChoice = scanner.nextInt();
+        scanner.nextLine();  // Consume newline
+
+        if (residentChoice < 1 || residentChoice > residents.size()) {
+            return null;  // Invalid selection
+        }
+
+        return residents.get(residentChoice - 1);
     }
-    
+
+    // Helper method to list caseworkers and prompt user for selection
+    private CaseWorker selectCaseWorker(Scanner scanner) {
+        List<Staff> staffMembers = Staff.getAllStaff();
+        System.out.println("\nAvailable Caseworkers:");
+        System.out.println(Supervisor.getHeader());  // Print caseworker header
+
+        int displayIndex = 1;
+        List<CaseWorker> caseworkers = new ArrayList<>();
+        for (Staff staff : staffMembers) {
+            if (staff instanceof CaseWorker) {
+                System.out.printf("%d. %s", displayIndex, staff.toString());
+                caseworkers.add((CaseWorker) staff);
+                displayIndex++;
+            }
+        }
+
+        System.out.print("Select a caseworker by number: ");
+        int caseworkerChoice = scanner.nextInt();
+        scanner.nextLine();  // Consume newline
+
+        if (caseworkerChoice < 1 || caseworkerChoice > caseworkers.size()) {
+            return null;  // Invalid selection
+        }
+
+        return caseworkers.get(caseworkerChoice - 1);
+    }
+
     @Override
     public void viewAssignedResidents() {
-    
+        List<Resident> residents = Resident.loadResidents();
+        System.out.println("\nAssigned Residents:");
+        System.out.println(Resident.getHeader());
+
+        boolean hasAssignedResidents = false;
+
+        for (Resident resident : residents) {
+            if (resident.getAssignedTo() != null && !resident.getAssignedTo().isEmpty()) {
+                System.out.println(resident.toString());
+                hasAssignedResidents = true;
+            }
+        }
+
+        if (!hasAssignedResidents) {
+            System.out.println("No residents are currently assigned to any caseworkers.");
+        }
+    }
+
+    public void assignUnitToResident() {
+        System.out.println("Assigning unit to resident functionality is not yet implemented.");
     }
 }
